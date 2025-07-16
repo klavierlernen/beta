@@ -1,10 +1,10 @@
-import { state, loadStatistics } from 'https://raw.githubusercontent.com/klavierlernen/beta.github.io/refs/heads/main/js/state.js';
-import { initializeMidi } from 'https://raw.githubusercontent.com/klavierlernen/beta.github.io/refs/heads/main/js/midi.js';
-import { handleMIDIMessage, generateSeries, cycleLage, cycleTone } from 'https://raw.githubusercontent.com/klavierlernen/beta.github.io/refs/heads/main/js/gameLogic.js';
-import { setupUIEventListeners, showWelcomeScreen } from 'https://raw.githubusercontent.com/klavierlernen/beta.github.io/refs/heads/main/js/ui.js';
-import { initializeAnimations } from 'https://raw.githubusercontent.com/klavierlernen/beta.github.io/refs/heads/main/features/animations.js';
-import { startTutorialIfNeeded } from 'https://raw.githubusercontent.com/klavierlernen/beta.github.io/refs/heads/main/features/tutorial.js';
-import { initializeVirtualKeyboard, toggleVirtualKeyboard } from 'https://raw.githubusercontent.com/klavierlernen/beta.github.io/refs/heads/main/features/virtualKeyboard.js';
+import { state, loadStatistics } from 'https://klavierlernen.github.io/beta.github.io/js/state.js';
+import { initializeMidi } from 'https://klavierlernen.github.io/beta.github.io/js/midi.js';
+import { handleMIDIMessage, generateSeries, cycleLage, cycleTone } from 'https://klavierlernen.github.io/beta.github.io/js/gameLogic.js';
+import { setupUIEventListeners, showWelcomeScreen } from 'https://klavierlernen.github.io/beta.github.io/js/js/ui.js';
+import { initializeAnimations } from 'https://klavierlernen.github.io/beta.github.io/js/animations.js';
+import { startTutorialIfNeeded } from 'https://klavierlernen.github.io/beta.github.io/js/tutorial.js';
+import { initializeVirtualKeyboard, toggleVirtualKeyboard } from 'https://klavierlernen.github.io/beta.github.io/features/virtualKeyboard.js';
 
 // App initialisieren, wenn das DOM geladen ist
 document.addEventListener("DOMContentLoaded", () => {

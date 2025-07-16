@@ -1,6 +1,6 @@
-import { state, resetGameStats } from 'https://raw.githubusercontent.com/klavierlernen/beta.github.io/refs/heads/main/js/state.js';
-import * as ui from 'https://raw.githubusercontent.com/klavierlernen/beta.github.io/refs/heads/main/js/ui.js';
-import * as config from 'https://raw.githubusercontent.com/klavierlernen/beta.github.io/refs/heads/main/js/config.js';
+import { state, resetGameStats } from 'https://klavierlernen.github.io/beta.github.io/js/state.js';
+import * as ui from 'https://klavierlernen.github.io/beta.github.io/js/ui.js';
+import * as config from 'https://klavierlernen.github.io/beta.github.io/js/config.js';
 
 export function generateSeries() {
     state.seriesCounter = 0;
