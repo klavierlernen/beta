@@ -1,5 +1,5 @@
-import { state } from './state.js';
-import { noteAnimals } from './config.js';
+import { state } from 'https://raw.githubusercontent.com/klavierlernen/beta.github.io/refs/heads/main/js/state.js';
+import { noteAnimals } from 'https://raw.githubusercontent.com/klavierlernen/beta.github.io/refs/heads/main/js/config.js';
 
 // DOM-Elemente
 const elements = {
