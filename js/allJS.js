@@ -4,10 +4,10 @@
 var lageProgress = {};
 var lageColors   = {};
 var currentRange, seriesCounter, correctNoteCount, seriesLength, errorNotes;
-var selectedMode, selectedClef, rangeNotes, octaveOptions;
+var customModeSettings, selectedMode, selectedClef, rangeNotes, octaveOptions;
 var melodyContext, selectedNotes, scaleSelectionMode, randomMode, isChordMode;
-var currentHandIndex, totalAttempts, hearts, unlimitedLives;
-var blobsEnabled;
+var handOptions, totalAttempts, hearts, unlimitedLives;
+var blobsEnabled, metronomeOn, metronomeInterval, lastTickTime, metronomeTolerance;
 // ───────────────────────────────────────────────────
 
 
