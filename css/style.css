@@ -10,162 +10,136 @@ html, body {
   overflow: hidden;
   position: fixed;
   width: 100%;
+  height: 100%;
 }
 
-body.dark-mode {
-  background-color: #0A0A0A;
-  color: #e0e0e0;
-}
 
-.hidden {
-    display: none !important;
-}
-
-/* --- Overlays & Canvas --- */
+/* Vollbild-Canvas für Animation (Hintergrund) */
 #animationCanvas {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 5;
+  z-index: 5; /* niedriger als Menüs */
   filter: blur(20px);
   opacity: 0.2;
   pointer-events: none;
 }
-
-#introOverlay, #welcomeOverlay, #pauseOverlay, #gameOverOverlay {
+/* Einhand-Notation (normaler Modus) */
+/* Absolute Mitte mit minimalen Rändern */
+  #notation {
+    display: none;              /* bleibt durch JS gesteuert */
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    flex-direction: column;
-    transition: opacity 0.5s ease-out, transform 1s ease-in-out;
-}
-
-#introOverlay {
-    background: white;
-}
-
-#introOverlay.hidden {
-    transform: translateY(-100%);
-}
-
-#welcomeOverlay {
-    background-image: url("https://raw.githubusercontent.com/jp0024/piano.github.io/main/greenWallpaper.svg");
-    background-size: cover;
-    background-position: center;
-}
-
-/* --- Spielfeld --- */
-#mainContent {
-  position: relative;
-  z-index: 10;
-  opacity: 1;
-  transition: opacity 0.5s ease-in;
-}
-
-#notation {
-    position: fixed;
-    top: 50%;
-    left: 50%;
+    top: 85%;
+    left: 65%;
     transform: translate(-50%, -50%);
+    transform-origin: center center;
     width: auto;
-    max-width: 90%;
+    max-width: calc(100% - 10px); /* 5 px Rand links/rechts */
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
     z-index: 1;
-}
+  }
 
+  @media screen and (max-width: 600px) {
+    #notation {
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      max-width: 90%;   /* 5 % Rand mobil */
+      padding: 0;
+    }
+  }
 #notation svg {
   width: 100%;
   height: auto;
+  shape-rendering: crispEdges;
   display: block;
   margin: 0 auto;
 }
-
-#noteNameDisplay {
-    position: fixed;
-    left: 50%;
-    bottom: 110px;
-    transform: translateX(-50%);
-    font-size: 5em;
-    text-transform: uppercase;
-    z-index: 100;
+#notation svg * {
+  vector-effect: non-scaling-stroke;
 }
-
-/* --- Steuerung & Anzeigen --- */
-#buttonContainer {
+body.dark-mode #notation svg * {
+  stroke: #fff;
+  fill: #fff;
+}
+/* Motivationsfenster */
+#motivationOverlay {
   position: fixed;
+  top: 20%;
   left: 50%;
-  bottom: 30px;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  z-index: 50;
-  gap: 15px;
+  transform: translate(-50%, -50%);
+  z-index: 15;
+  pointer-events: none;
+  opacity: 0;
+  font-size: 2em;
+  color: #000;
+  text-shadow: none;
 }
-
-.control-button {
-    text-transform: uppercase;
-    font-weight: bold;
-    background: white;
-    border: 2.5px solid black;
-    border-radius: 8px;
-    padding: 16px 24px;
-    font-size: 1.2em;
-    cursor: pointer;
-    transition: opacity 0.3s;
+@keyframes floatFade {
+  0% { transform: translate(-50%, -50%) translateY(20px); opacity: 0; }
+  20% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { transform: translate(-50%, -50%) translateY(-20px); opacity: 0; }
 }
-
-#settingsPanel {
-  position: fixed;
-  top: 50%;
-  right: 20px;
-  transform: translateY(-50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  z-index: 100;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.9);
-  border: 3px solid #000;
-  padding: 10px;
-  gap: 10px;
-  font-size: 1.8em;
-  transition: opacity 0.5s ease;
+.animate-motivation {
+  animation: floatFade 2.5s ease-out forwards;
 }
-
-#settingsPanel span {
-    cursor: pointer;
-}
-
-#streakDisplay {
-    position: fixed;
-    left: 20px;
-    bottom: 30px;
-    font-size: 2em;
-    z-index: 50;
-}
-
-#virtualKeyboard {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 150px; /* Höhe anpassen */
-    z-index: 200;
-}
-
-/* --- Spezifische Modul-Stile --- */
-
-/* Pause-Modus */
+/* Pause-Overlay */
 #pauseOverlay {
-    background: #fff;
+  position: fixed;
+  top: 15px;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #fff;
+  z-index: 1000;
+  display: none;
+  flex-direction: column;
 }
+/* Obere Info-Leiste im Pausenmodus */
+#pauseInfo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
+#pauseHeader {
+  font-size: 2em;
+  font-weight: bold;
+  color: #000;
+  white-space: nowrap;
+}
+/* Fortschrittsbalken */
+#pauseProgressContainer {
+  flex-grow: 1;
+  height: 20px;
+  border: 3px solid #000;
+  border-radius: 20px;
+  position: relative;
+  background: #fff;
+}
+#pauseProgress {
+  height: 100%;
+  width: 0%;
+  background: red;
+  border-radius: 20px;
+  transition: width 1s linear;
+}
+/* Verbleibende Zeit im Format mm:ss */
+#pauseTime {
+  font-size: 14px;
+  color: #000;
+  white-space: nowrap;
+  margin-left: 10px;
+  font-weight: bold;
+}
+/* Kachelwand im Pausenmodus – Füllt den restlichen Raum wie eine Tapete */
 #pauseTiles {
   flex-grow: 1;
   width: 100%;
@@ -177,5 +151,873 @@ body.dark-mode {
   gap: 12px;
   overflow-y: auto;
 }
+/* Variierende Kacheln (Mauerstein-Effekt) */
+.tile:nth-child(3n) {
+  grid-row: span 2;
+}
+.tile:nth-child(4n) {
+  grid-column: span 2;
+}
+.tile {
+  background: #fff;
+  border: 3px solid #000;
+  border-radius: 20px;
+  padding: 15px;
+  font-size: 14px;
+  color: #000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+.tileIcon {
+  font-size: 5em;
+  margin-bottom: 8px;
+}
+.tileTitle {
+  font-size: 3em;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+.tileValue {
+  font-size: 2.5em;
+  font-weight: normal;
+}
+.barChart {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 5px;
+  gap: 5px;
+}
+.bar {
+  width: 10%;
+  background-color: #007aff;
+  border-radius: 4px 4px 0 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  color: #fff;
+  font-size: 0.8em;
+}
+/* Game Over Overlay */
+#gameOverOverlay {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 20;
+  background: rgba(0,0,0,0.8);
+  color: #fff;
+  padding: 30px;
+  border-radius: 15px;
+  font-size: 2em;
+  white-space: pre-line;
+  display: none;
+}
+body.dark-mode #gameOverOverlay {
+  border: 3px solid #fff;
+}
+.hidden {
+  display: none !important;
+}
+/* Timer Container */
+/* Timer Container */
+    #timerContainer {
+        font-weight: bold;
+      position: fixed;
+      right: 10px;
+      bottom: 48px;
+      font-size: 1.5em;
+      z-index: 100;
+      display: flex; /* Versteckt, bis der Intro-Modus beendet ist */
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 5px 10px;
+      border-radius: 5px;
+    }
+/* Hauptinhalt */
+#mainContent {
+  display: none;
+  position: relative;
+  z-index: 10;
+  opacity: 0;
+  transition: opacity 0.5s ease-in;
+  padding-bottom: 50px;
+}
+/* Einstellungen-Menü */
+#settingsPanel {
+  position: fixed;
+  top: 150%;
+  right: 20px;
+  transform: translateY(-15%);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  z-index: 10;
+  border-radius: 20px;
+  width: 60px;
+  background: #fff;
+  border: 3px solid #000;
+  padding: 10px 20px;
+  font-size: 1.2em;
+  text-align: center;
+  color: #000;
+  box-sizing: border-box;
+  transition: transform 0.2s, box-shadow 0.2s, opacity 0.5s ease;
+  max-height: 90vh;        /* auf 90 % der Bildschirmhöhe begrenzt */
+  overflow-y: auto;        /* erlaubt vertikales Scrollen */
+  box-sizing: border-box;  /* padding wird bei Höhe mitgerechnet */
+  padding: 1rem;
+  pointer-events: auto;
+  -webkit-overflow-scrolling: touch;
+}
 
-/* ... weitere detaillierte CSS-Regeln hier einfügen ... */
+/* ================================= */
+/* 3D-Stil für das Lagen-Rechteck    */
+/* ================================= */
+#clefTitle, #lageButton, #toneButton {
+    text-transform: uppercase;
+    font-weight: bold;
+  background: white;
+  border: 2.5px solid black;
+  border-radius: 8px;
+  
+  padding: 16px 24px;
+  margin: 8px;
+  font-size: 1.2em;
+  text-align: center;
+  color: #333;
+  cursor: pointer;
+}
+
+body.dark-mode #settingsPanel {
+  background: #000;
+  border-color: #fff;
+}
+#settingsPanel span {
+    border: 3px solid #000;
+  display: block;
+  cursor: pointer;
+  font-size: 1.8em;
+  margin: 8px 0;
+  padding: 2px;
+  text-align: center;
+  background: none;
+  border: none;
+}
+#settingsPanel span:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+@keyframes float {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+  100% { transform: translateY(0); }
+}
+
+/* Lagewechsel-Button */
+#clefTitle {
+  display: inline-block;
+  background: #fff;
+  border: 3px solid #000;
+  border-radius: 20px;
+  padding: 10px 20px;
+  font-size: 1.5em;
+  color: #000;
+  cursor: pointer;
+  transition: all 0.5s ease;
+  animation: float 3s ease-in-out infinite;
+}
+body.dark-mode #clefTitle {
+  background: #000;
+  border-color: #fff;
+  color: #fff;
+}
+/* Neuer Pausen-Button im Menü */
+#pauseButton {
+  display: inline-block;
+  background: #fff;
+  border: 3px solid #000;
+  border-radius: 20px;
+  padding: 10px 20px;
+  font-size: 1.5em;
+  color: #000;
+  cursor: pointer;
+  transition: all 0.5s ease;
+  margin-top: 10px;
+}
+body.dark-mode #pauseButton {
+  background: #000;
+  border-color: #fff;
+  color: #fff;
+}
+/* Container für Button & Herzen */
+#buttonContainer {
+  position: fixed;
+  left: 50%;
+  bottom: 30px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  z-index: 50;
+}
+#heartsContainer {
+  display: inline-block;
+  margin-left: 10px;
+  vertical-align: middle;
+  font-size: 1.5em;
+}
+/* Notenname-Anzeige (normaler Modus) */
+#noteNameDisplay {
+  margin-top: 10px;
+  font-size: 24px;
+  color: #000;
+  text-transform: uppercase;
+}
+body.dark-mode #noteNameDisplay { color: #e0e0e0; }
+/* Welcome Overlay */
+#welcomeOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1000;
+  transition: opacity 0.5s ease-out;
+  background-color: transparent;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-image: url("https://raw.githubusercontent.com/jp0024/piano.github.io/main/greenWallpaper.svg");
+  background-size: cover;
+  background-position: center;
+}
+#welcomeMessage {
+  font-size: 2.5em;
+  color: black;
+  margin-bottom: 20px;
+  font-weight: bold;
+}
+body.dark-mode #welcomeMessage { color: #e0e0e0; }
+
+.bar-chart-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+  width: 100%;
+  padding: 10px;
+  height: 120px; /* Gesamthöhe inkl. Label */
+}
+
+.bar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.bar {
+  width: 100%;
+  background: linear-gradient(to top, black, grey);
+  border-radius: 4px 4px 0 0;
+  transition: height 0.5s ease-in-out;
+}
+
+.bar-label {
+  margin-top: 4px;
+  font-size: 0.9em;
+  text-align: center;
+  color: #000;
+}
+  
+  /* Beispiel: Klasse für eine breite, aber nur 1 Zeile hohe Kachel */
+  .tile.span-2 {
+    grid-column: span 2;
+    /* Falls eine andere Regel (nth-child(3n)) sie hochskalieren würde, überschreiben wir das: */
+    grid-row: span 1 !important;
+  }
+  
+  body.dark-mode #pauseOverlay {
+    background: #121212; /* dunkler Hintergrund */
+  }
+
+  body.dark-mode #pauseHeader,
+  body.dark-mode #pauseTime {
+    color: white; /* helle Schrift */
+  }
+
+  body.dark-mode #pauseProgressContainer {
+    background: black; /* evtl. noch dunklerer Hintergrund für den Fortschrittsbalken */
+    border-color: white;
+  }
+  
+  .tile.span-2 {
+    grid-column: span 2;
+    grid-row: span 1 !important;
+  }
+  
+  #streakDisplay {
+    position: fixed;
+    left: 20px;
+    bottom: 30px;
+    font-size: 1.5em;
+    z-index: 50;
+    visibility: hidden;
+  }
+  
+@media screen and (max-width: 600px) {
+
+/* Notensystem kürzen: Notation-Container anpassen */
+#notation {
+top: 60%;
+max-width: 90%;
+padding: 5px;
+}
+
+/* Passe die Notenanzeige an (falls nötig) */
+#noteNameDisplay {
+font-size: 3em;
+bottom: 80px; /* leicht nach oben verschieben, wenn nötig */
+}
+
+/* Optional: Passe den Button-Container an, falls er zu groß ist */
+#buttonContainer {
+flex-direction: column;
+bottom: 20px;
+}
+
+#settingsPanel {
+  max-height: 80vh !important;
+  top: 10% !important;
+  bottom: 10% !important;
+  height: auto !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+  pointer-events: auto;
+}
+}
+
+ 
+ /* Custom Mode Modal Styles */
+ #customModeModal {
+     position: fixed;
+     left: 20%;
+     transform: translateY(-50%);
+     top: 0;
+     width: 400px;
+     background: white;
+     border: 2px solid black;
+     border-radius: 10px;
+     padding: 20px;
+     z-index: 150;
+ }
+ #customModeModal h2 {
+     margin-top: 0;
+     text-align: center;
+ }
+ .custom-mode-row {
+     display: flex;
+     justify-content: space-around;
+     margin-bottom: 15px;
+     flex-wrap: wrap;
+ }
+ .custom-mode-clef-container, .custom-mode-range-container, .custom-mode-note-set {
+     display: flex;
+     gap: 5px;
+ }
+.custom-mode-clef-option, .custom-mode-range-option, .custom-mode-note-option {
+padding: 5px 10px;
+border: none;
+background: none;
+cursor: pointer;
+opacity: 0.5;
+transition: opacity 0.3s;
+font-weight: bold;
+}
+ .custom-mode-clef-option.active, .custom-mode-range-option.active, .custom-mode-note-option.active {
+     opacity: 1;
+ }
+ .custom-mode-hand-label {
+     align-self: center;
+     margin-right: 10px;
+     font-weight: bold;
+ }
+ .custom-mode-save {
+     text-align: center;
+     margin-top: 20px;
+ }
+ 
+ .custom-mode-save button {
+     background: white;
+     border: 2px solid black;
+     border-radius: 8px;
+     padding: 10px 20px;
+     font-weight: bold;
+     cursor: pointer;
+     font-size: 1em;
+     color: #000;
+     transition: transform 0.2s, box-shadow 0.2s;
+ }
+ 
+ .custom-mode-save button:active {
+     transform: translateY(6px);
+     box-shadow:
+       0 0 0 #abc9ab,
+       0 6px 6px rgba(0,0,0,0.2);
+ }
+ .hidden {
+     display: none !important;
+ }
+/* Carousel Hint Speech Bubble */
+.speech-bubble {
+  position: fixed;
+  width: 180px;
+  padding: 10px;
+  background: #fff;
+  border: 2px solid #000;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  font-size: 0.9em;
+  z-index: 1001;
+}
+.speech-bubble::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 10px 10px 0;
+  border-style: solid;
+  border-color: #fff transparent;
+}
+.speech-bubble .close-btn {
+  position: absolute;
+  top: 2px;
+  right: 5px;
+  cursor: pointer;
+  font-weight: bold;
+}
+/* Carousel container and track */
+/* Carousel container und Track nun vertikal gestapelt */
+#carouselContainer {
+  position: relative;
+  width: 100%;
+  overflow-y: auto;      /* vertikales Scrollen erlauben */
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column; /* Items untereinander anordnen */
+}
+
+#carouselTrack {
+  display: block;
+  width: 100%;
+}
+
+.carouselItem {
+  width: 100%;
+  display: block;
+  margin-bottom: 8px;     /* Abstand zwischen den Items */
+}
+  
+  @keyframes flyOutRight {
+    to { opacity: 0; transform: translateX(100%); }
+  }
+  @keyframes flyOutLeft {
+    to { opacity: 0; transform: translateX(-100%); }
+  }
+  .fly-out-right {
+    animation: flyOutRight 0.5s forwards;
+  }
+  .fly-out-left {
+    animation: flyOutLeft 0.5s forwards;
+    
+  }
+  
+  #virtualKeyboard {
+    position: fixed;
+    top: 150%;
+    left: 30px;
+    right: 30px;
+    width: auto;
+    max-width: calc(100% - 60px);
+    height: 100px;
+    transform-origin: top center; /* Für skalierte Darstellung */
+  }
+
+  /* Real Piano Key Sizes */
+  #virtualKeyboard .white-key, #virtualKeyboard .white {
+    width: 23px !important;
+    height: 560px !important;
+  }
+
+  #virtualKeyboard .black-key, #virtualKeyboard .black {
+    width: 14px !important;
+    height: 80px !important;
+    margin-left: -7px;
+    margin-right: -7px;
+  }
+
+  /* Nur Touch-Interaktionen für die virtuelle Klaviatur erlauben */
+  @media (pointer: fine) {
+    #virtualKeyboard {
+      pointer-events: none;
+    }
+  }
+  @media (pointer: coarse) {
+    #virtualKeyboard {
+      pointer-events: auto;
+      margin: 0 20px; /* Abstand zu den Bildschirmrändern */
+    }
+  }
+  
+  /* Solange vk-active, behalten diese Elemente immer ihre Top-Position */
+  body.vk-active #timerContainer,
+  body.vk-active #streakDisplay,
+  body.vk-active #buttonContainer {
+    top: 30px !important;
+    bottom: auto !important;
+  }
+
+  /* Fehler-/Korrektur-Overlay ebenfalls immer von oben einblenden */
+  body.vk-active #pauseOverlay,
+  body.vk-active .correction {
+    top: 20px !important;
+    bottom: auto !important;
+  }
+  
+  #correctionBox {
+    position: fixed;
+    bottom: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #fff;
+    border: 3px solid #000;
+    padding: 15px 30px;
+    border-radius: 15px;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  #correctionChoices {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    font-size: 2em;
+  }
+
+  #correctionChoices button,
+  #confirmNoteBtn {
+    font-size: 1.5em;
+    padding: 5px 10px;
+    cursor: pointer;
+  }
+  
+  
+    .correction-choice {
+      opacity: 0.5;
+      margin: 5px;
+      cursor: pointer;
+      display: inline-block;
+      padding: 5px;
+      border: 1px solid #000;
+      border-radius: 4px;
+    }
+  
+ 
+    #scaleSelector {
+      position: absolute;
+      top: 10px;
+      right: 40px;
+      z-index: 1000;
+      display: flex;
+      gap: 10px;
+    }
+    .clef-button {
+      font-size: 2em;
+      padding: 5px 10px;
+      background: white;
+      border: 2px solid black;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    
+    .selectable-note {
+      font-size: 1.5em;
+      padding: 8px 10px;
+      border: 2px solid black;
+      border-radius: 6px;
+      background: white;
+      cursor: pointer;
+    }
+    .selectable-note.selected {
+      background: lightgreen;
+    }
+  
+  .vf-note.selected path {
+    stroke: green !important;
+    fill: green !important;
+  }
+  
+  #scaleSelector {
+    display: none;
+    margin: 10px 0;
+    gap: 8px;
+  }
+  #scaleSelector button {
+    cursor: pointer;
+    padding: 4px 8px;
+  }
+/* Metronome input: borderless, no spinner arrows */
+#metronomeInput {
+  border: none;
+  background: transparent;
+  outline: none;
+  -moz-appearance: textfield;
+  -webkit-appearance: none;
+  appearance: none;
+}
+#metronomeInput::-webkit-outer-spin-button,
+#metronomeInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+  
+  /* 1) Settings-Panel beim Long-Press aufklappen */
+  #settingsPanel.expanded {
+    top: 160%      !important;
+    bottom: 0   !important;
+    height: auto!important;
+    display: flex!important;
+    flex-direction: column;
+    justify-content: flex-start;
+    overflow-y: auto;
+  }
+
+  /* 2) Draggable Emojis gestalten */
+  .settings-emoji {
+    font-size: 2em;
+    margin: 8px 0;
+    cursor: grab;
+    user-select: none;
+    transition: border 0.2s;
+  }
+  .settings-emoji.drag-over {
+    border: 2px dashed #333;
+  }
+  
+  /* ----------------------------------------
+     Grid für alle Notennamen unter der Notation
+     ---------------------------------------- */
+  #noteChoiceGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    max-width: 300px;
+    margin: 20px auto;       /* Zentriert unter dem Notensystem */
+    text-align: center;
+  }
+  #noteChoiceGrid.hidden {
+    display: none !important;
+  }
+  #noteChoiceGrid button {
+    padding: 10px;
+    font-size: 1.2em;
+    border: 1px solid #000;
+    border-radius: 4px;
+    background-color: #fff;
+    cursor: pointer;
+  }
+  /* Zustände nach Klick (richtig/falsch) */
+  #noteChoiceGrid button.correct {
+    background-color: #c8e6c9;  /* Hellgrün */
+    border-color: #388e3c;
+    color: #388e3c;
+  }
+  #noteChoiceGrid button.wrong {
+    background-color: #ffcdd2;  /* Hellrot */
+    border-color: #d32f2f;
+    color: #d32f2f;
+  }
+  
+  #lageProgressCircle {
+    width: 60px;
+    height: 60px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 5px;
+    border: 3px;
+  }
+  .lage-progress-svg {
+    position: absolute;
+    top: 0; left: 0;
+  }
+  .lage-progress-text {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #333;
+    pointer-events: none;
+    user-select: none;
+    
+  }
+  
+  #remainingNotesDisplay {
+    position: absolute;
+    right: 10px;
+    top: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    font-size: 0.9em;
+    font-weight: bold;
+    color: #000;
+  }
+  
+  /* Separator und Akkorde-Button */
+  #scaleSelector .separator {
+    width: 1px; background-color: #000;
+    margin: 0 8px; align-self: center; height: 24px;
+  }
+  #scaleSelector #chordButton {
+    font-size: 1.2em; padding: 4px 8px;
+    border: 2px solid black; border-radius: 6px;
+    background: white; cursor: pointer;
+  }
+  /* Modal für Akkordauswahl */
+  #chordModal { position: fixed; top:50%; left:50%;
+    transform: translate(-50%,-50%);
+    width:90%; max-width:400px;
+    background:#fff; border:3px solid #000;
+    border-radius:10px; padding:20px; z-index:2000;
+    display:none; flex-direction:column;
+    align-items:center;
+  }
+  #chordModal.visible { display:flex !important; }
+  #chordModal h2 { margin-bottom:10px; }
+  #chordList { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; width:100%; }
+  .chord-item {
+    padding:8px; border:2px solid black; border-radius:6px;
+    cursor:pointer; user-select:none;
+  }
+  .chord-item.selected {
+    background-color: lightgreen; border-color: green;
+  }
+  #chordModal .confirm-chords {
+    font-size:2em; cursor:pointer; margin-top:15px;
+  }
+    
+    #introOverlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      transition: transform 1s ease-in-out;
+    }
+    #introOverlay.hidden {
+      transform: translateY(-100%);
+    }
+    #introOverlayText {
+      font-size: 1.5em;
+      font-weight: bold;
+      text-align: center;
+      padding: 20px;
+      color: black;
+    }
+
+.vf-stavenote.selected path {
+stroke: green !important;
+fill: green !important;
+}
+.correction-letter {
+font-size: 0.9em;
+line-height: 1;
+}
+@keyframes flyOutRight {
+from { opacity: 1; transform: translateX(0); }
+to   { opacity: 0; transform: translateX(100%); }
+}
+@keyframes flyOutLeft {
+from { opacity: 1; transform: translateX(0); }
+to   { opacity: 0; transform: translateX(-100%); }
+}
+.fly-out-right {
+animation: flyOutRight 0.5s forwards;
+}
+.fly-out-left {
+animation: flyOutLeft 0.5s forwards;
+}
+@keyframes flyInRight {
+from { opacity: 0; transform: translateX(100%); }
+to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes flyInLeft {
+from { opacity: 0; transform: translateX(-100%); }
+to   { opacity: 1; transform: translateX(0); }
+}
+.fly-in-right {
+animation: flyInRight 0.5s forwards;
+}
+.fly-in-left {
+animation: flyInLeft 0.5s forwards;
+}
+/* Intro Overlay Styles */
+#introOverlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  transform: translateY(0);
+  transition: transform 1s ease-in-out;
+}
+#introOverlay.hidden {
+  transform: translateY(-100%);
+}
+/* Twemoji: Konsistente Emoji-Größe */
+img.emoji {
+  height: 1.2em;
+  vertical-align: -0.1em;
+}
+
+/* Weniger Abstand des Notensystems nach oben */
+#notation {
+margin-top: 10px;
+}
+/* Scale-Clef-Buttons standardmäßig verbergen */
+#scaleSelector {
+display: none;
+}
+/* Styling für Oktaven-Buttons: weißer Hintergrund, schwarzer Rand */
+#scaleSelector button {
+background-color: white;
+border: 2px solid black;
+border-radius: 4px;
+padding: 4px 8px;
+cursor: pointer;
+}
+
+@media screen and (max-width: 768px) {
+#settingsPanel,
+#timerContainer,
+#streakDisplay {
+  display: none !important;
+}
+}
