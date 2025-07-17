@@ -7,7 +7,7 @@ var currentRange, seriesCounter, correctNoteCount, seriesLength, errorNotes;
 var selectedMode, selectedClef, rangeNotes, octaveOptions;
 var melodyContext, selectedNotes, scaleSelectionMode, randomMode, isChordMode;
 var handOptions, currentHandIndex, totalAttempts, hearts, unlimitedLives;
-var blobsEnabled, lastTickTime, metronomeTolerance;
+var blobsEnabled, metronomeTolerance;
 // ───────────────────────────────────────────────────
 
 
