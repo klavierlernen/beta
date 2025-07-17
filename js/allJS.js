@@ -3343,8 +3343,6 @@ settingsPanel.style.flexDirection = "column";
 window.addEventListener("resize", checkOrientation);
 checkOrientation();
 
-
-
 document.addEventListener("DOMContentLoaded", () => {
 // iOS check: Verwende nativen Swift-Handler, falls vorhanden
 if (window.webkit?.messageHandlers?.customPrompt) {
