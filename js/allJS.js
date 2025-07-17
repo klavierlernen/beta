@@ -1,3 +1,6 @@
+// Prevent 'lageProgress' TDZ before initialization
+var lageProgress = {};
+
 
 let twoHandMode = false;
 let seriesCounterLeft = 0;
@@ -3575,7 +3578,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-// Doppelklick (bzw. Doppeltippen) auf Body: Geometrie-Modus speichern & schließen  
+// Doppelklick (bzw. Doppeltippen) auf Body: Geometrie-Modus speichern & schließen
 document.addEventListener("DOMContentLoaded", () => {
   document.body.addEventListener("dblclick", () => {
     // Hier die Funktion zum Speichern und Abschließen des Geometrie-Modus aufrufen.
@@ -4331,9 +4334,9 @@ const lageColors = {
   "F": "#FF3B30"
 };
 
-let lageProgress = JSON.parse(localStorage.getItem("lageProgress") || "{}");
+lageProgress = JSON.parse(localStorage.getItem("lageProgress") || "{}");
 // Initialisieren, falls noch nicht vorhanden
-rangeArray.forEach(lage => {
+lageArray.forEach(lage => {
   if (!lageProgress[lage]) lageProgress[lage] = 0;
 });
 
