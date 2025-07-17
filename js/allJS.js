@@ -1,7 +1,14 @@
-// Prevent 'lageColors' TDZ before initialization
-var lageColors = {};
-// Prevent 'lageProgress' TDZ before initialization
+// allJS.js — ganz oben
+// ───────────────────────────────────────────────────
+// Hoisted global variables (werden vor dem Rest eingezogen)
 var lageProgress = {};
+var lageColors   = {};
+var currentRange, seriesCounter, correctNoteCount, seriesLength, errorNotes;
+var customModeSettings, selectedMode, selectedClef, rangeNotes, octaveOptions;
+var melodyContext, selectedNotes, scaleSelectionMode, randomMode, isChordMode;
+var handOptions, currentHandIndex, totalAttempts, hearts, unlimitedLives;
+var blobsEnabled, metronomeOn, metronomeInterval, lastTickTime, metronomeTolerance;
+// ───────────────────────────────────────────────────
 
 
 let twoHandMode = false;
@@ -2497,8 +2504,8 @@ if (!localStorage.getItem('carouselHintShown')) {
 // Scoreboard-Toggle
 
 // --- Quintenzirkel & Lagen: Definition der verfügbaren Lagen und Tonarten ---
-// Lade gespeicherte Farben oder benutze leeres Objekt
-lageColors = JSON.parse(localStorage.getItem("lageColors") || "{}");
+// Verfügbare Lagen und Quintenzirkel-Tonarten
+
 
 autoSelectMode();
 generateSeries();
