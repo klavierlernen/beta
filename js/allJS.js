@@ -3571,12 +3571,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }, 5000);
 });
 
-document.addEventListener("DOMContentLoaded", () => {
-  twemoji.parse(document.body, {
-    folder: 'svg',
-    ext: '.svg'
-  });
-});
 
 // Doppelklick (bzw. Doppeltippen) auf Body: Geometrie-Modus speichern & schließen
 document.addEventListener("DOMContentLoaded", () => {
