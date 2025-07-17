@@ -1,3 +1,8 @@
+// allJS.js — ganz oben
+// ───────────────────────────────────────────────────
+// Hoisted global variables (werden vor dem Rest eingezogen)
+var lageProgress
+// ───────────────────────────────────────────────────
 
 
 let twoHandMode = false;
