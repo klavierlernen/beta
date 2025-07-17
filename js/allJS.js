@@ -1,14 +1,3 @@
-// allJS.js — ganz oben
-// ───────────────────────────────────────────────────
-// Hoisted global variables (werden vor dem Rest eingezogen)
-var lageProgress = {};
-var lageColors   = {};
-var currentRange, seriesCounter, correctNoteCount, seriesLength, errorNotes;
-var customModeSettings, selectedMode, selectedClef, rangeNotes, octaveOptions;
-var melodyContext, selectedNotes, scaleSelectionMode, randomMode, isChordMode;
-var handOptions, totalAttempts, hearts, unlimitedLives;
-var blobsEnabled, metronomeOn, metronomeInterval, lastTickTime, metronomeTolerance;
-// ───────────────────────────────────────────────────
 
 
 let twoHandMode = false;
