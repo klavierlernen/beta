@@ -3575,7 +3575,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-// Doppelklick (bzw. Doppeltippen) auf Body: Geometrie-Modus speichern & schließen
+// Doppelklick (bzw. Doppeltippen) auf Body: Geometrie-Modus speichern & schließen  
 document.addEventListener("DOMContentLoaded", () => {
   document.body.addEventListener("dblclick", () => {
     // Hier die Funktion zum Speichern und Abschließen des Geometrie-Modus aufrufen.
