@@ -2,6 +2,8 @@
 // ───────────────────────────────────────────────────
 // Hoisted global variables (werden vor dem Rest eingezogen)
 var lageProgress
+var currentRange
+var rangeNotes
 // ───────────────────────────────────────────────────
 
 
