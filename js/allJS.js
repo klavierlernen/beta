@@ -3343,10 +3343,8 @@ settingsPanel.style.flexDirection = "column";
 window.addEventListener("resize", checkOrientation);
 checkOrientation();
 
-</script>
-</body>
-<!-- Vereinheitlichte MIDI-Initialisierung -->
-<script>
+
+
 document.addEventListener("DOMContentLoaded", () => {
 // iOS check: Verwende nativen Swift-Handler, falls vorhanden
 if (window.webkit?.messageHandlers?.customPrompt) {
@@ -3386,9 +3384,7 @@ navigator.requestMIDIAccess({ sysex: false }).then((midiAccess) => {
   console.error("❌ MIDI Zugriff fehlgeschlagen:", err);
 });
 });
-</script>
-</html>
-<script>
+
 
 
 function startTutorialSequence() {
