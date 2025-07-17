@@ -2495,7 +2495,7 @@ if (!localStorage.getItem('carouselHintShown')) {
 // Scoreboard-Toggle
 
 // --- Quintenzirkel & Lagen: Definition der verfügbaren Lagen und Tonarten ---
-// Verfügbare Lagen und Quintenzirkel-Tonarten
+// Verfügbare Lagen und Quintenzirkel-Tonarten   
 
 
 autoSelectMode();
