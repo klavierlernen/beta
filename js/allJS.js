@@ -1,3 +1,5 @@
+// Prevent 'lageColors' TDZ before initialization
+var lageColors = {};
 // Prevent 'lageProgress' TDZ before initialization
 var lageProgress = {};
 
@@ -2495,8 +2497,8 @@ if (!localStorage.getItem('carouselHintShown')) {
 // Scoreboard-Toggle
 
 // --- Quintenzirkel & Lagen: Definition der verfügbaren Lagen und Tonarten ---
-// Verfügbare Lagen und Quintenzirkel-Tonarten   
-
+// Lade gespeicherte Farben oder benutze leeres Objekt
+lageColors = JSON.parse(localStorage.getItem("lageColors") || "{}");
 
 autoSelectMode();
 generateSeries();
