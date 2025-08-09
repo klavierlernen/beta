@@ -1874,7 +1874,81 @@ function proceedToMainScreen() {
         notationEl.style.pointerEvents = 'none';
         notationEl.style.cursor = 'grab';
       }
-      setTimeout(() => { mainContent.style.opacity = "1"; }, 500);
+
+      // Falls sich nach einem früheren Verschiebe‑Vorgang noch Hilfslinien im DOM befinden,
+      // entferne sie jetzt, damit sie nicht sichtbar bleiben.
+      if (window._notationGuides) {
+        window._notationGuides.forEach(el => {
+          if (el && el.parentElement) el.parentElement.removeChild(el);
+        });
+        window._notationGuides = null;
+      }
+
+      // --- Einmaliger Hinweis zum Platzieren des Notensystems ---
+      // Falls der Benutzer das Notensystem noch nicht eingerichtet hat, aktivieren wir automatisch
+      // den Verschiebe‑Modus und zeigen eine Anleitung mit Bestätigungs‑Button.  Nach der Bestätigung
+      // wird der Geometriemodus dauerhaft aus dem Einstellungen‑Panel entfernt.
+      setTimeout(() => {
+        if (localStorage.getItem('notationConfigured') !== 'true') {
+          const moveToggle = document.getElementById('moveNotationToggle');
+          if (moveToggle) {
+            // Aktiviere den Verschiebe‑Modus, wenn er noch nicht aktiv ist
+            if (!moveToggle.classList.contains('active')) {
+              moveToggle.click();
+            }
+            // Overlay mit Instruktionen erstellen
+            const instruct = document.createElement('div');
+            instruct.id = 'geometryInstruction';
+            instruct.style.position = 'fixed';
+            instruct.style.top = '50%';
+            instruct.style.left = '50%';
+            instruct.style.transform = 'translate(-50%, -50%)';
+            instruct.style.padding = '20px';
+            instruct.style.border = '3px solid #000';
+            instruct.style.borderRadius = '10px';
+            instruct.style.background = '#fff';
+            instruct.style.zIndex = '3000';
+            instruct.style.fontSize = '1.2em';
+            instruct.style.maxWidth = '80%';
+            instruct.style.textAlign = 'center';
+            instruct.innerHTML = 'Verschiebe das Notensystem an die gewünschte Position innerhalb des linken Bereichs.<br/>Tippe danach auf <strong>Fertig</strong>, um fortzufahren.';
+            // Bestätigungs‑Button
+            const doneBtn = document.createElement('button');
+            doneBtn.textContent = 'Fertig';
+            doneBtn.style.marginTop = '15px';
+            doneBtn.style.padding = '10px 20px';
+            doneBtn.style.border = '2px solid #000';
+            doneBtn.style.borderRadius = '6px';
+            doneBtn.style.background = '#fff';
+            doneBtn.style.cursor = 'pointer';
+            doneBtn.addEventListener('click', () => {
+              // Deaktivieren des Verschiebe‑Modus durch Auslösen eines Klicks auf den Toggle
+              // (der Toggle ist noch sichtbar zu diesem Zeitpunkt)
+              moveToggle.click();
+              // Entferne verbleibende Hilfslinien (falls der Toggle sie nicht entfernt)
+              if (window._notationGuides) {
+                window._notationGuides.forEach(el => {
+                  if (el && el.parentElement) el.parentElement.removeChild(el);
+                });
+                window._notationGuides = null;
+              }
+              // Merke, dass die Position konfiguriert wurde
+              localStorage.setItem('notationConfigured', 'true');
+              // Entferne den Geometrie‑Button dauerhaft
+              moveToggle.style.display = 'none';
+              // Entferne den Hinweis
+              if (instruct.parentElement) {
+                instruct.parentElement.removeChild(instruct);
+              }
+            });
+            instruct.appendChild(document.createElement('br'));
+            instruct.appendChild(doneBtn);
+            document.body.appendChild(instruct);
+          }
+        }
+      }, 500);
+
+      setTimeout(() => { mainContent.style.opacity = '1'; }, 500);
     }, 1000);
   }, 5000);
 }
@@ -1884,6 +1958,13 @@ function getRandomThreshold() {
 
 document.addEventListener("DOMContentLoaded", () => {
   // MIDI-Quelle erkennen und loggen
+  // Entferne gegebenenfalls verbliebene Hilfslinien des Verschiebe‑Modus aus vorigen Sessions
+  if (window._notationGuides) {
+    window._notationGuides.forEach(el => {
+      if (el && el.parentElement) el.parentElement.removeChild(el);
+    });
+    window._notationGuides = null;
+  }
   let midiSource = "MIDI (Unknown)";
   if (window.webkit?.messageHandlers?.customPrompt) {
     midiSource = "MIDI iOS (Swift Bridge)";
@@ -3622,11 +3703,7 @@ if (!existingInput) {
   
 
   // Move Notation Toggle
-  const moveNotationToggle = document.createElement("span");
-  moveNotationToggle.id = "moveNotationToggle";
-  moveNotationToggle.textContent = "📐";
-  settingsPanel.appendChild(moveNotationToggle);
-
+  let moveNotationToggle;
   let moveModeActive = false;
   let currentX = 0, currentY = 0; // Persist position for storage
   let startX = 0, startY = 0;
@@ -3634,7 +3711,14 @@ if (!existingInput) {
   let xGuide, yGuide, xLabel, yLabel;
   let duringDrag, endDrag; // For removal of listeners
 
-  moveNotationToggle.addEventListener("click", () => {
+  // Erstelle den Verschiebe‑Button nur, wenn das Notensystem noch nicht konfiguriert wurde
+  if (localStorage.getItem('notationConfigured') !== 'true') {
+    moveNotationToggle = document.createElement("span");
+    moveNotationToggle.id = "moveNotationToggle";
+    moveNotationToggle.textContent = "📐";
+    settingsPanel.appendChild(moveNotationToggle);
+
+    moveNotationToggle.addEventListener("click", () => {
     const notation = document.getElementById("notation");
     // Drag-Cursor für Notation
     notation.style.cursor = "grab";
@@ -3740,6 +3824,21 @@ if (!existingInput) {
         startX = evt.clientX;
         startY = evt.clientY;
 
+        // Begrenze die Bewegung innerhalb des linken Rechtecks
+        const leftPanel = document.getElementById('leftBackdrop');
+        let leftRect;
+        if (leftPanel && notation) {
+          leftRect = leftPanel.getBoundingClientRect();
+          const noteRect = notation.getBoundingClientRect();
+          // Berechne den maximalen Versatz in jede Richtung (zur Hälfte der Differenz zwischen Panel- und Notationsbreite/Höhe)
+          const maxX = (leftRect.width - noteRect.width) / 2;
+          const maxY = (leftRect.height - noteRect.height) / 2;
+          if (currentX < -maxX) currentX = -maxX;
+          if (currentX >  maxX) currentX =  maxX;
+          if (currentY < -maxY) currentY = -maxY;
+          if (currentY >  maxY) currentY =  maxY;
+        }
+
         xGuide.style.transform = `translateX(${currentX}px)`;
         yGuide.style.transform = `translateY(${currentY}px)`;
         xLabel.style.left = `calc(50% + ${currentX}px + 5px)`;
@@ -3749,8 +3848,14 @@ if (!existingInput) {
 
         notation.style.position = "fixed";
         notation.style.top = "50%";
-        // Horizontally centre notation within the left backdrop while dragging
-        notation.style.left = "calc(10px + (100% - 80px - 20px - 10px)/2)";
+        // Set the horizontal centre relative to the left panel width
+        if (leftPanel && leftRect) {
+          const centreX = 10 + leftRect.width / 2;
+          notation.style.left = centreX + 'px';
+        } else {
+          // fallback to previous calc expression
+          notation.style.left = "calc(10px + (100% - 80px - 20px - 10px)/2)";
+        }
         notation.style.transform = `translate(-50%, -50%) translate(${currentX}px, ${currentY}px)`;
       };
       endDrag = () => {
@@ -3798,6 +3903,8 @@ if (!existingInput) {
       window.removeEventListener("touchend", endDrag);
     }
   });
+  // Ende des Verschiebe-Buttons (wird nur erstellt, wenn keine gespeicherte Position vorhanden ist)
+  }
   
 document.getElementById("timerContainer").addEventListener("click", () => {
 let existingInput = document.getElementById("counterInput");
@@ -6044,18 +6151,23 @@ if ('serviceWorker' in navigator) {
       } else {
         rightPanel.classList.remove('wide');
       }
-      // Wenn das Einstellungs‑Panel den Schwellwert (30 % des Bildschirms) erreicht, blende die
-      // Elemente im linken Paneel halbtransparent. Ansonsten volle Opazität.
-      const opacityTarget = (rightWidth >= maxRightWidth) ? '0.5' : '1';
-      // Liste aller zu verblassenden Elemente: Notensystem, Button‑Container, Timer, Streak und Notenanzeige
-      [notation,
-       document.getElementById('buttonContainer'),
+      // Wenn das Einstellungs‑Panel den Schwellwert (30 % des Bildschirms) erreicht,
+      // blende die Elemente im linken Paneel halbtransparent und verstecke das Notensystem.
+      // Ansonsten stelle volle Opazität wieder her und zeige das Notensystem an.
+      const atMax = rightWidth >= maxRightWidth;
+      const opacityTarget = atMax ? '0.5' : '1';
+      [document.getElementById('buttonContainer'),
        document.getElementById('timerContainer'),
        document.getElementById('streakDisplay'),
        document.getElementById('noteNameDisplay')
       ].forEach(el => {
         if (el) el.style.opacity = opacityTarget;
       });
+      // Notation wird bei maximalem Panel ausgeblendet, sonst eingeblendet.
+      if (notation) {
+        notation.style.opacity = opacityTarget;
+        notation.style.display = atMax ? 'none' : 'block';
+      }
     }
 
     // initialize left width from current width
