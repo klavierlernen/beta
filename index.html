@@ -1370,6 +1370,14 @@ cursor: pointer;
 <!-- JavaScript Logic -->
 <script>
 let twoHandMode = false;
+// Stellen Sie sicher, dass das Notensystem nicht verschiebbar ist.  
+// Wir markieren das Notensystem als bereits konfiguriert, sodass der Geometrie‑Button
+// nicht erstellt und der Platzierungs‑Hinweis nicht gezeigt wird.
+try {
+  localStorage.setItem('notationConfigured', 'true');
+} catch (e) {
+  // Wenn localStorage nicht verfügbar ist, ignorieren
+}
   let seriesCounterLeft = 0;
   let seriesCounterRight = 0;
   let currentSeriesLeft = [];
@@ -1871,6 +1879,7 @@ function proceedToMainScreen() {
         /* Standardmäßig ignoriert das Notensystem alle Pointer‑Events.
            Nur bei aktiviertem Verschiebe‑Modus wird pointerEvents wieder auf
            'auto' gesetzt, um Drag‑Aktionen zu ermöglichen. */
+        // Verhindere Pointer‑Events, damit das Notensystem keine Klicks abfängt
         notationEl.style.pointerEvents = 'none';
         notationEl.style.cursor = 'grab';
       }
@@ -1889,7 +1898,9 @@ function proceedToMainScreen() {
       // den Verschiebe‑Modus und zeigen eine Anleitung mit Bestätigungs‑Button.  Nach der Bestätigung
       // wird der Geometriemodus dauerhaft aus dem Einstellungen‑Panel entfernt.
       setTimeout(() => {
-        if (localStorage.getItem('notationConfigured') !== 'true') {
+        // Die Ausrichtung des Notensystems durch den Benutzer ist abgeschafft.
+        // Deshalb wird der einmalige Platzierungshinweis nicht mehr angezeigt.
+        if (false) {
           const moveToggle = document.getElementById('moveNotationToggle');
           if (moveToggle) {
             // Aktiviere den Verschiebe‑Modus, wenn er noch nicht aktiv ist
@@ -2821,17 +2832,16 @@ function spawnInactivityBlob() {
 }
 document.addEventListener("DOMContentLoaded", () => {
   let canvas = document.getElementById("animationCanvas");
-  // --- Apply saved notation position from localStorage ---
-  const savedTransform = localStorage.getItem("notationTransform");
-  if (savedTransform) {
+  // --- Notationsposition nicht mehr aus dem Speicher laden ---
+  // Stattdessen positionieren wir die Notation stets zentriert im linken Bereich.
+  {
     const notation = document.getElementById("notation");
     if (notation) {
       notation.style.position = "fixed";
       notation.style.top = "50%";
-      // Horizontally centre the notation within the left backdrop:  
-      // the centre of the left rectangle is 10px + (100% - 80px - 30px)/2.
+      // Horizontale Zentrierung: Mitte des linken Rechtecks
       notation.style.left = "calc(10px + (100% - 80px - 20px - 10px)/2)";
-      notation.style.transform = savedTransform;
+      notation.style.transform = "translate(-50%, -50%)";
     }
   }
   if (!canvas) {
@@ -3510,16 +3520,10 @@ function closePlayerList() {
 
   
   
-  const blobToggle = document.createElement("span");
-  blobToggle.id = "blobToggle";
-  blobToggle.textContent = "🔆";
-  blobToggle.style.cursor = "pointer";
-  settingsPanel.appendChild(blobToggle);
+  // Entferne den Blobs-/Sonnen‑Modus aus der Benutzeroberfläche.
+  // Der frühere blobToggle ("🔆"/"🔅") wird nicht mehr erstellt,
+  // sodass das farbige Hintergrund‑Blobs immer aktiviert bleiben.
 
-  blobToggle.addEventListener("click", () => {
-    blobsEnabled = !blobsEnabled;
-    blobToggle.textContent = blobsEnabled ? "🔆" : "🔅";
-  });
   
   // Pausen-Button
   function blinkGreenBackground() {
@@ -3793,12 +3797,22 @@ if (!existingInput) {
           currentY = parseFloat(match[2]);
         }
       }
-      xGuide.style.transform = `translateX(${currentX}px)`;
-      yGuide.style.transform = `translateY(${currentY}px)`;
-      xLabel.style.left = `calc(50% + ${currentX}px + 5px)`;
-      xLabel.textContent = `${Math.round((currentX / window.innerWidth) * 100)}%`;
-      yLabel.style.top = `calc(50% + ${currentY}px + 5px)`;
-      yLabel.textContent = `${Math.round((currentY / window.innerHeight) * 100)}%`;
+      // Aktualisiere die Hilfslinien nur, wenn sie existieren (beim Einrichten).  Nach dem ersten
+      // Verschiebe‑Vorgang werden sie entfernt und xGuide/yGuide/xLabel/yLabel sind null.
+      if (xGuide) {
+        xGuide.style.transform = `translateX(${currentX}px)`;
+      }
+      if (yGuide) {
+        yGuide.style.transform = `translateY(${currentY}px)`;
+      }
+      if (xLabel) {
+        xLabel.style.left = `calc(50% + ${currentX}px + 5px)`;
+        xLabel.textContent = `${Math.round((currentX / window.innerWidth) * 100)}%`;
+      }
+      if (yLabel) {
+        yLabel.style.top = `calc(50% + ${currentY}px + 5px)`;
+        yLabel.textContent = `${Math.round((currentY / window.innerHeight) * 100)}%`;
+      }
       notation.style.position = "fixed";
       notation.style.top = "50%";
       // Horizontally centre notation within the left backdrop
@@ -3839,12 +3853,21 @@ if (!existingInput) {
           if (currentY >  maxY) currentY =  maxY;
         }
 
-        xGuide.style.transform = `translateX(${currentX}px)`;
-        yGuide.style.transform = `translateY(${currentY}px)`;
-        xLabel.style.left = `calc(50% + ${currentX}px + 5px)`;
-        xLabel.textContent = `${Math.round((currentX / window.innerWidth) * 100)}%`;
-        yLabel.style.top = `calc(50% + ${currentY}px + 5px)`;
-        yLabel.textContent = `${Math.round((currentY / window.innerHeight) * 100)}%`;
+        // Aktualisiere die Hilfslinien nur, wenn sie existieren (beim Einrichten)
+        if (xGuide) {
+          xGuide.style.transform = `translateX(${currentX}px)`;
+        }
+        if (yGuide) {
+          yGuide.style.transform = `translateY(${currentY}px)`;
+        }
+        if (xLabel) {
+          xLabel.style.left = `calc(50% + ${currentX}px + 5px)`;
+          xLabel.textContent = `${Math.round((currentX / window.innerWidth) * 100)}%`;
+        }
+        if (yLabel) {
+          yLabel.style.top = `calc(50% + ${currentY}px + 5px)`;
+          yLabel.textContent = `${Math.round((currentY / window.innerHeight) * 100)}%`;
+        }
 
         notation.style.position = "fixed";
         notation.style.top = "50%";
@@ -3882,6 +3905,7 @@ if (!existingInput) {
       moveModeActive = false;
       // Nach dem Verschiebe‑Modus ignoriert das Notensystem wieder Pointer‑Events
       if (notation) {
+        // Nach dem Verschiebe‑Modus ignoriert das Notensystem wieder Pointer‑Events
         notation.style.pointerEvents = 'none';
       }
       // Hide notation zoom controls when exiting move mode
@@ -3896,7 +3920,13 @@ if (!existingInput) {
           if (el && el.parentElement) el.parentElement.removeChild(el);
         });
         window._notationGuides = null;
+        // Setze die Referenzen der Hilfslinien auf null, damit sie nicht weiter in Drag-Routinen verwendet werden
+        xGuide = null;
+        yGuide = null;
+        xLabel = null;
+        yLabel = null;
       }
+      // Entferne die Event‑Listener, da der Verschiebemodus beendet ist
       window.removeEventListener("mousemove", duringDrag);
       window.removeEventListener("touchmove", duringDrag);
       window.removeEventListener("mouseup", endDrag);
@@ -6219,7 +6249,7 @@ if ('serviceWorker' in navigator) {
       resetScaleBtn: 'Skala zurücksetzen',
       saveScaleBtn: 'Skala speichern',
       randomToggle: 'Zufallsmodus',
-      blobToggle: 'Blobs',
+      // blobToggle wurde entfernt
       metronomeToggle: 'Metronom',
       kidsModeToggle: 'Kinder-Modus',
       moveNotationToggle: 'Notensystem verschieben',
