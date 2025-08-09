@@ -69,6 +69,11 @@ body.dark-mode {
     margin: 0;
     box-sizing: border-box;
     z-index: 1;
+    /* Verhindere, dass das Notensystem Mausklicks oder Touches abfängt.
+       Dadurch können Elemente hinter dem SVG (z.B. Einstellungen) weiterhin
+       angeklickt werden.  Die Ereignisse werden nur bei aktiviertem
+       Verschiebe‑Modus ("moveNotation") wieder freigegeben. */
+    pointer-events: none;
   }
 
   /* Früher wurde das Notensystem bei kleinen Displays separat positioniert.  Da
@@ -79,6 +84,10 @@ body.dark-mode {
   shape-rendering: crispEdges;
   display: block;
   margin: 0 auto;
+  /* Verhindert, dass das von VexFlow erzeugte SVG Maus- oder Touch-
+     Ereignisse abfängt. Dadurch bleiben dahinter liegende Buttons
+     und Emojis anklickbar. */
+  pointer-events: none;
 }
 #notation svg * {
   vector-effect: non-scaling-stroke;
@@ -279,7 +288,8 @@ body.dark-mode #gameOverOverlay {
   display: none;
   flex-direction: column;
   align-items: center;
-  z-index: 10;
+  /* Die Einstellungs‑Leiste und ihre Emojis sollen stets über allen anderen Inhalten liegen. */
+  z-index: 2000;
   border-radius: 20px;
   width: 120px;
   background: #fff;
@@ -737,7 +747,9 @@ font-weight: bold;
     border: none !important;
     border-radius: 0 !important;
     padding: 5px;
-    z-index: 2;
+    /* Setze einen sehr hohen z‑Index, damit das Einstellungs‑Panel und seine
+       Emojis stets über allen anderen Inhalten liegen. */
+    z-index: 2000;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1856,7 +1868,10 @@ function proceedToMainScreen() {
       const notationEl = document.getElementById('notation');
       if (notationEl) {
         notationEl.style.display = 'block';
-        notationEl.style.pointerEvents = 'auto';
+        /* Standardmäßig ignoriert das Notensystem alle Pointer‑Events.
+           Nur bei aktiviertem Verschiebe‑Modus wird pointerEvents wieder auf
+           'auto' gesetzt, um Drag‑Aktionen zu ermöglichen. */
+        notationEl.style.pointerEvents = 'none';
         notationEl.style.cursor = 'grab';
       }
       setTimeout(() => { mainContent.style.opacity = "1"; }, 500);
@@ -2995,6 +3010,38 @@ document.addEventListener('DOMContentLoaded', () => {
     }, { passive: true });
   }
 });
+
+// Generische Touch‑Unterstützung für alle klickbaren Elemente.  
+// Viele Browser auf Tablets lösen keinen Click‑Event aus, bevor ein Touch beendet wird.
+// Um sicherzustellen, dass „click“‑Handler auch bei Touchstart ausgeführt werden,
+// rufen wir in einem globalen Listener den Click‑Handler der Elemente manuell auf.
+document.addEventListener('DOMContentLoaded', () => {
+  function addTouchSupportTo(selector) {
+    document.querySelectorAll(selector).forEach(el => {
+      // Nur wenn das Element bereits einen Click‑Handler hat oder ein Onclick‑Attribut besitzt
+      if (!el) return;
+      el.addEventListener('touchstart', (ev) => {
+        // Unterbinde das Bubble‑Verhalten, damit der Hintergrund‑Listener nicht auslöst
+        ev.stopPropagation();
+        // Führe den Click‑Handler aus
+        if (typeof el.onclick === 'function') {
+          el.onclick();
+        } else {
+          // Dispatch einen künstlichen Click‑Event für event listeners
+          const clickEvent = new Event('click', { bubbles: true, cancelable: true });
+          el.dispatchEvent(clickEvent);
+        }
+      }, { passive: true });
+    });
+  }
+  // Initiale Registrierung für bestehende Bedienelemente
+  addTouchSupportTo('#toneButton, #lageButton, #handToggle, #pauseButton, #settingsPanel span');
+  // Da manche Elemente erst später im DOM erzeugt werden (z. B. weitere Emojis),
+  // wiederholen wir die Registrierung nach kurzer Zeit.
+  setTimeout(() => {
+    addTouchSupportTo('#settingsPanel span');
+  }, 1500);
+});
   
   const playerToggle = document.createElement("span");
   playerToggle.id = "playerToggle";
@@ -3594,6 +3641,10 @@ if (!existingInput) {
     // Ensure startX, startY are declared only once at top-level
     if (!moveModeActive) {
       moveModeActive = true;
+      // Notensystem empfängt Pointer‑Events nur während des Verschiebe‑Modus
+      if (notation) {
+        notation.style.pointerEvents = 'auto';
+      }
       // Show notation zoom controls in move mode
       zoomInBtn.style.display = 'inline';
       zoomOutBtn.style.display = 'inline';
@@ -3710,18 +3761,24 @@ if (!existingInput) {
       [xGuide, yGuide, xLabel, yLabel].forEach(el => {
         el.style.touchAction = "none";
         el.addEventListener("mousedown", startDrag);
-        el.addEventListener("touchstart", startDrag);
+        // Für Touch‑Gesten den Listener explizit als nicht‑passiv markieren, damit preventDefault erlaubt ist
+        el.addEventListener("touchstart", startDrag, { passive: false });
       });
-      // Erlaube Ziehen direkt am Notations-DIV
+      // Erlaube Ziehen direkt am Notations‑DIV
       notation.addEventListener("mousedown", startDrag);
       notation.addEventListener("touchstart", startDrag, { passive: false });
       window.addEventListener("mousemove", duringDrag);
-      window.addEventListener("touchmove", duringDrag);
+      // Für Touchmove dürfen wir preventDefault ausführen, daher { passive: false }
+      window.addEventListener("touchmove", duringDrag, { passive: false });
       window.addEventListener("mouseup", endDrag);
       window.addEventListener("touchend", endDrag);
 
     } else {
       moveModeActive = false;
+      // Nach dem Verschiebe‑Modus ignoriert das Notensystem wieder Pointer‑Events
+      if (notation) {
+        notation.style.pointerEvents = 'none';
+      }
       // Hide notation zoom controls when exiting move mode
       zoomInBtn.style.display = 'none';
       zoomOutBtn.style.display = 'none';
@@ -4793,7 +4850,9 @@ function startTutorialSequence() {
         const notationEl = document.getElementById('notation');
         if (notationEl) {
           notationEl.style.display = 'block';
-          notationEl.style.pointerEvents = 'auto';
+          /* Standardmäßig ignoriert das Notensystem Pointer‑Events.
+             Drag‑Aktionen werden nur im Verschiebe‑Modus (moveNotation) ermöglicht. */
+          notationEl.style.pointerEvents = 'none';
           notationEl.style.cursor = 'grab';
         }
         localStorage.setItem("tutorialCompleted", "true");
@@ -6019,9 +6078,11 @@ if ('serviceWorker' in navigator) {
       dragging = false;
     };
     divider.addEventListener('mousedown', startDrag);
-    divider.addEventListener('touchstart', startDrag);
+    // Markiere den touchstart‑Listener als nicht‑passiv, damit preventDefault erlaubt ist
+    divider.addEventListener('touchstart', startDrag, { passive: false });
     document.addEventListener('mousemove', doDrag);
-    document.addEventListener('touchmove', doDrag);
+    // Für Touchmove dürfen wir preventDefault ausführen, daher { passive: false }
+    document.addEventListener('touchmove', doDrag, { passive: false });
     document.addEventListener('mouseup', endDrag);
     document.addEventListener('touchend', endDrag);
 
