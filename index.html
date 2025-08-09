@@ -632,7 +632,8 @@ font-weight: bold;
     bottom: 10px;
     background: #ffffff;
     border-radius: 20px;
-    z-index: 0; /* behind notation and settings */
+    /* Kein z‑Index an dieser Stelle, damit die individuellen z‑Index‑Einstellungen
+       für links (2) und rechts (3) wirken können. */
   }
   /* Left rectangle fills the remaining width except the right rectangle, margins and the divider.  
      There is no fixed gap anymore; instead a draggable divider (panelDivider) occupies the space between left and right. */
@@ -640,11 +641,18 @@ font-weight: bold;
     left: 10px;
     /* initial width leaves space for the right panel (80px), the divider (10px) and two 10px margins */
     width: calc(100% - 80px - 20px - 10px);
+    /* Das Notensystem soll niemals über den Rand des linken Rechtecks hinausragen.  
+       Indem wir Overflow auf hidden setzen, bleibt alles innerhalb des Paneels. */
+    overflow: hidden;
+    /* Der linke Bereich liegt oberhalb des Notensystems (z‑Index 2). */
+    z-index: 2;
   }
-  /* Right rectangle is narrower for the settings */
+  /* Right rectangle ist der Einstellungsbereich.  
+     Er liegt oberhalb des linken Paneels (z‑Index 3) und kann beim Drag nach links geschoben werden. */
   #rightBackdrop {
     right: 10px;
     width: 80px;
+    z-index: 3;
   }
 
   /* Divider between the two panels.
@@ -2957,6 +2965,36 @@ document.addEventListener("DOMContentLoaded", () => {
       generateSeries();
     }
   });
+
+// Zusätzliche Touch‑Unterstützung für Bedientasten auf Tablets (z. B. iPad)
+// Auf iOS und anderen Geräten mit Touch‑Bildschirm wird der Klick‑Event nicht immer zuverlässig
+// ausgelöst. Deshalb binden wir hier explizite Touch‑Start‑Events für wichtige Buttons.
+document.addEventListener('DOMContentLoaded', () => {
+  const toneBtn = document.getElementById('toneButton');
+  const lageBtn = document.getElementById('lageButton');
+  // Hand‑Umschalter (falls vorhanden) könnte ebenfalls relevant sein
+  const handToggle = document.getElementById('handToggle');
+  if (toneBtn) {
+    toneBtn.addEventListener('touchstart', (ev) => {
+      // Verhindere, dass das Ereignis weiter gegeben wird (z. B. an den Hintergrund‑Listener)
+      ev.stopPropagation();
+      cycleTone();
+    }, { passive: true });
+  }
+  if (lageBtn) {
+    lageBtn.addEventListener('touchstart', (ev) => {
+      ev.stopPropagation();
+      cycleLage();
+    }, { passive: true });
+  }
+  if (handToggle) {
+    handToggle.addEventListener('touchstart', (ev) => {
+      ev.stopPropagation();
+      // simuliert einen Klick auf den Hand‑Toggle, um die Hand zu wechseln
+      handToggle.click();
+    }, { passive: true });
+  }
+});
   
   const playerToggle = document.createElement("span");
   playerToggle.id = "playerToggle";
@@ -5923,24 +5961,42 @@ if ('serviceWorker' in navigator) {
         rightWidth = minRightWidth;
         leftWidth = totalWidth - rightWidth - dividerWidth - margin * 2;
       }
-      leftPanel.style.width = leftWidth + 'px';
+      // Begrenze die Breite des Einstellungs‑Panels auf maximal 30 % der Gesamtbreite
+      const maxRightWidth = totalWidth * 0.3;
+      if (rightWidth > maxRightWidth) {
+        rightWidth = maxRightWidth;
+        leftWidth  = totalWidth - rightWidth - dividerWidth - margin * 2;
+      }
+      // Wende die berechneten Breiten an
+      leftPanel.style.width  = leftWidth  + 'px';
       rightPanel.style.width = rightWidth + 'px';
       divider.style.left = (margin + leftWidth) + 'px';
-      // centre notation horizontally
+      // Zentriere die Notation horizontal im linken Paneel
       const centreX = margin + leftWidth / 2;
       notation.style.left = centreX + 'px';
-      // shrink notation width with left panel
+      // Verkleinere die Notation proportional zur Breite des linken Paneels
       const notationMaxWidth = Math.max(leftWidth - 40, 200);
-      // Set both maxWidth and explicit width so that the VexFlow SVG scales down when the left
-      // panel becomes narrower. Without setting width, the SVG container may not shrink.  
+      // Setze sowohl maxWidth als auch width, damit das VexFlow‑SVG mitskaliert
       notation.style.maxWidth = notationMaxWidth + 'px';
-      notation.style.width = notationMaxWidth + 'px';
-      // toggle wide class for right panel
+      notation.style.width    = notationMaxWidth + 'px';
+      // Schalte Detailmodus des Einstellungs‑Panels je nach Breite um
       if (rightWidth > 150) {
         rightPanel.classList.add('wide');
       } else {
         rightPanel.classList.remove('wide');
       }
+      // Wenn das Einstellungs‑Panel den Schwellwert (30 % des Bildschirms) erreicht, blende die
+      // Elemente im linken Paneel halbtransparent. Ansonsten volle Opazität.
+      const opacityTarget = (rightWidth >= maxRightWidth) ? '0.5' : '1';
+      // Liste aller zu verblassenden Elemente: Notensystem, Button‑Container, Timer, Streak und Notenanzeige
+      [notation,
+       document.getElementById('buttonContainer'),
+       document.getElementById('timerContainer'),
+       document.getElementById('streakDisplay'),
+       document.getElementById('noteNameDisplay')
+      ].forEach(el => {
+        if (el) el.style.opacity = opacityTarget;
+      });
     }
 
     // initialize left width from current width
